@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:async';
 
 class Clock extends StatefulWidget {
@@ -9,20 +10,45 @@ class Clock extends StatefulWidget {
 }
 
 class _ClockState extends State<Clock> {
-  String _time = '25:00';
+  static const int TASK_MINUTES = 25;
+  static const int BREAK_MINUTES = 5;
+  String _time = '';
   LeftTime _leftTime;
   bool _isPause = true;
   String _buttonLabel = "START";
   int _interval = 0;
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
   @override
   void initState() {
-    _leftTime = LeftTime(25);
+    _leftTime = LeftTime(0);
     Timer.periodic(
       Duration(seconds: 1),
       _onTimer,
     );
     super.initState();
+
+    var initializationSettingsAndroid =
+        new AndroidInitializationSettings('app_icon');
+    var initializationSettingsIOS = new IOSInitializationSettings();
+    var initializationSettings = new InitializationSettings(
+        initializationSettingsAndroid, initializationSettingsIOS);
+    flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
+    flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  Future notify() async {
+    var isBreak = _interval % 2 == 0;
+    var title = isBreak ? 'short break' : 'doing task';
+    var message = isBreak ? '少し休憩しましょう。' : 'タスクに取り掛かりましょう。';
+    var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
+        'your channel id', 'your channel name', 'your channel description',
+        importance: Importance.Max, priority: Priority.High);
+    var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
+    var platformChannelSpecifics = new NotificationDetails(
+        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+        0, title, message, platformChannelSpecifics);
   }
 
   void _onTimer(Timer timer) {
@@ -30,9 +56,9 @@ class _ClockState extends State<Clock> {
     setState(() => _time = _leftTime.getLeftMinutes());
     _leftTime.countDown();
     if (_leftTime.left < 0) {
-      print("ZERO!!");
       _interval++;
-      var min = _interval % 2 == 0 ? 25 : 5;
+      notify();
+      var min = _interval % 2 == 0 ? BREAK_MINUTES : TASK_MINUTES;
       _leftTime = LeftTime(min);
     }
   }
