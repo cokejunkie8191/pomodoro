@@ -9,8 +9,10 @@ class Clock extends StatefulWidget {
 }
 
 class _ClockState extends State<Clock> {
-  String _time = '';
+  String _time = '25:00';
   LeftTime _leftTime;
+  bool _isPause = true;
+  String _buttonLabel = "START";
 
   @override
   void initState() {
@@ -23,19 +25,28 @@ class _ClockState extends State<Clock> {
   }
 
   void _onTimer(Timer timer) {
+    if (_isPause) return;
     setState(() => _time = _leftTime.getLeftMinutes());
     _leftTime.countDown();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      _time,
-      style: TextStyle(
-        fontSize: 60.0,
-        fontFamily: 'IBMPlexMono',
+    return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Text(
+        _time,
+        style: TextStyle(
+          fontSize: 60.0,
+          fontFamily: 'IBMPlexMono',
+        ),
       ),
-    );
+      RaisedButton(
+          child: Text(_buttonLabel),
+          onPressed: () {
+            _isPause = !_isPause;
+            setState(() => _buttonLabel = _isPause ? "START" : "PAUSE");
+          })
+    ]);
   }
 }
 

@@ -15,9 +15,8 @@ class MyApp extends StatelessWidget {
       appBar: AppBar(
         title: Text('ポモドーロタイマー'),
       ),
-      body: Center(
-        child: Clock(),
-      ),
+      body:
+          Center(child: Container(alignment: Alignment.center, child: Clock())),
     );
   }
 }
